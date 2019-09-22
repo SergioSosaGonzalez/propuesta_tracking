@@ -1,0 +1,13 @@
+rootProject.name = 'trackingApp'
+include ':@mauron85_react-native-background-geolocation-common'
+project(':@mauron85_react-native-background-geolocation-common').projectDir = new File(rootProject.projectDir, '../node_modules/@mauron85/react-native-background-geolocation/android/common')
+include ':@mauron85_react-native-background-geolocation'
+project(':@mauron85_react-native-background-geolocation').projectDir = new File(rootProject.projectDir, '../node_modules/@mauron85/react-native-background-geolocation/android/lib')
+include ':react-native-background-geolocation'
+project(':react-native-background-geolocation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-background-geolocation/android')
+include ':react-native-background-geolocation'
+project(':react-native-background-geolocation').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-background-geolocation/android')
+include ':react-native-maps'
+project(':react-native-maps').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-maps/lib/android')
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
