@@ -15,7 +15,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
-import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 import socketIO from 'socket.io-client';
 import {YellowBox} from 'react-native';
 
@@ -38,47 +38,62 @@ export class MapScreen extends Component {
         'hardwareBackPress',
         this.handleBackPress,
       );
-      this.socket = socketIO('http://192.168.1.70:3000/', {
+
+      this.socket = socketIO('http://192.168.1.67:3000/', {
         query:
           'auth_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1ZDdjMTM2ZWQ0ZjBkMDA0OTc3ZDRhOTAiLCJuYW1lIjoidGVzdCIsImxhc3RfbmFtZSI6InRlc3QiLCJlbWFpbCI6InRlc3RAdXJnZWdhcy5jb20iLCJpYXQiOjE1NjkxNzc3NzB9.EXfPzmqw9pN7itQyeSTNjRU4EbCTKiib_gV7G9_C6u4',
       });
-      //this.socket.connect();
       this.socket.on('connect', () => {
         console.log('connected to socket serv');
       });
-      BackgroundGeolocation.configure({
-        desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-        stationaryRadius: 50,
-        distanceFilter: 50,
-        debug: false,
-        startOnBoot: false,
-        locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
-        interval: 10000,
-        fastestInterval: 5000,
-        activitiesInterval: 10000,
-        stopOnStillActivity: false,
+      BackgroundGeolocation.onLocation((location, error) => {
+        this.sendObject(location.coords);
       });
-      setInterval(() => {
-        BackgroundGeolocation.getCurrentLocation((success, fail, options) => {
-          //console.log(success);
-          const obj = {
-            latitude: success.latitude,
-            longitude: success.longitude,
-          };
-          console.log(obj);
-          this.socket.emit('coordenites', obj);
-        });
-      }, 1000);
-
-      BackgroundGeolocation.getLocations(function(locations) {
-        console.log(locations);
+      BackgroundGeolocation.onMotionChange(onMotionChange => {
+        this.sendObject(onMotionChange.location.coords);
       });
+      BackgroundGeolocation.ready(
+        {
+          desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+          distanceFilter: 1,
+          debug: false,
+          stopTimeout: 1,
+          logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+          stopOnTerminate: false,
+          stopOnTerminate: false, // <-- Allow the background-service to continue tracking when user closes the app.
+          startOnBoot: true, // <-- Auto start tracking when device is powered-up.
+          // HTTP / SQLite config
+          url: 'http://192.168.1.67:3000/api/test',
+          batchSync: false, // <-- [Default: false] Set true to sync locations to server in a single HTTP request.
+          autoSync: true,
+        },
+        state => {
+          console.log(
+            '- BackgroundGeolocation is configured and ready: ',
+            state.enabled,
+          );
+          if (!state.enabled) {
+            BackgroundGeolocation.start(function() {
+              console.log('- Start success');
+            });
+          }
+        },
+      );
     } catch (e) {}
+  }
+
+  sendObject(coords) {
+    const obj = {
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+    };
+    this.socket.emit('coordenites', obj);
   }
   componentWillUnmount() {
     BackgroundGeolocation.removeAllListeners();
+
+    this.sendObject();
     this.socket.disconnect();
-    console.log('Gola');
   }
 
   handleBackPress = () => {

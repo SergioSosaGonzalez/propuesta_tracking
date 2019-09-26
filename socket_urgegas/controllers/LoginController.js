@@ -30,7 +30,11 @@ function login(req, resp) {
     }
   });
 }
-
+function test(req, resp) {
+  console.log("gola");
+  return resp.status(200).send({ message: "Llego correctamente" });
+}
 module.exports = {
-  login
+  login,
+  test
 };

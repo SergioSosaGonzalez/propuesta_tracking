@@ -31,8 +31,6 @@ target 'trackingApp' do
 
   pod 'RNBackgroundGeolocation', :path => '../node_modules/react-native-background-geolocation'
 
-  pod '@mauron85_react-native-background-geolocation', :path => '../node_modules/@mauron85/react-native-background-geolocation'
-
   target 'trackingAppTests' do
     inherit! :search_paths
     # Pods for testing

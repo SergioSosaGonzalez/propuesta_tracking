@@ -3,6 +3,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 //Inicializacion de npm para poner autenticacion al socket por medio de tokens
 var jwtAuth = require("socketio-jwt-auth");
+var Users = require("./models/user");
 
 var app = express();
 var server = require("http").Server(app);
@@ -21,8 +22,11 @@ io.use(
       secret: process.env.SECRET_KEY
     },
     function(payload, done) {
-      console.log(payload);
-      return done(null, "info");
+      Users.findById(payload.sub).exec((err, user) => {
+        if (user && user != null) {
+          return done(null, "info");
+        }
+      });
     }
   )
 );
@@ -50,12 +54,13 @@ io.on("connection", function(socket) {
   socket.on("coordenites", function(data) {
     //Se almacena el id del socket como nombre de la propiedad del objeto cliente y se agregan las coordenadas
     clients[socket["id"]] = data;
+    console.log(clients);
     //io.sockets.emit("clients-coordinates", messages);
   });
 
   //Metodo que nos indica cuando se desconecta un dispositivo
   socket.on("disconnect", function() {
-    console.log("Dispositivo Desconectado");
+    //console.log("Dispositivo Desconectado");
     delete clients[socket["id"]];
   });
 });
